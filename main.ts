@@ -16,7 +16,7 @@
 // Run it the way the grader does, from the repository root:
 //   mkdir -p out && MAKEFUN_BOT_DIR=. MAKEFUN_OUTPUT_DIR=out node main.ts
 
-import { copyFileSync, mkdirSync } from "node:fs";
+import { copyFileSync, existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -25,6 +25,15 @@ import { fileURLToPath } from "node:url";
 // directory of this file and to /output.
 const botDir = process.env.MAKEFUN_BOT_DIR ?? dirname(fileURLToPath(import.meta.url));
 const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
+const source = join(botDir, "entry.png");
+const target = join(outDir, "entry.png");
+
+// Fail loudly (instead of a bare ENOENT from copyFileSync) when the
+// entry image is not beside this program.
+if (!existsSync(source)) {
+  throw new Error(`entry image not found: ${source}`);
+}
 
 mkdirSync(outDir, { recursive: true });
-copyFileSync(join(botDir, "entry.png"), join(outDir, "entry.png"));
+copyFileSync(source, target);
+console.log(`wrote ${target} (${existsSync(target) ? "ok" : "missing"})`);
